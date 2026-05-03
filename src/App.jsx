@@ -1,6 +1,5 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createClient } from "@supabase/supabase-js";
-
 
 const supabase = createClient(
   "https://ptmoszpwbzyivcaliliv.supabase.co",
@@ -47,12 +46,6 @@ const SEED = [
   { id:14, position:1.0, firstName:"הילל",   lastName:"לנסקי",    present:true,  speed:5, shooting:5, playmaking:4, rating:5 },
 ];
 
-const IcoSave = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
-    <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
-    <polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>
-  </svg>
-);
 const IcoPlus = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5">
     <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
@@ -254,35 +247,22 @@ export default function App() {
   const [options, setOptions] = useState(null);
   const [optionMode, setOptionMode] = useState("");
   const [modal, setModal] = useState(null);
-  const [syncMsg, setSyncMsg] = useState("");
   const [lastSaved, setLastSaved] = useState(storage.lastSaved());
-const isFirstLoad = useRef(true);
-
-useEffect(() => {
-  if (isFirstLoad.current) { isFirstLoad.current = false; return; }
-  const timer = setTimeout(async () => {
-    const ok = await storage.save(players);
-    if (ok) setLastSaved(new Date().toISOString());
-  }, 1000);
-  return () => clearTimeout(timer);
-}, [players]);
   const [errorMsg, setErrorMsg] = useState("");
+  const isFirstLoad = useRef(true);
+
+  useEffect(() => {
+    if (isFirstLoad.current) { isFirstLoad.current = false; return; }
+    const timer = setTimeout(async () => {
+      const ok = await storage.save(players);
+      if (ok) setLastSaved(new Date().toISOString());
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [players]);
 
   const presentCount = players.filter(p => p.present).length;
 
   const togglePresent = id => setPlayers(ps => ps.map(p => p.id === id ? { ...p, present: !p.present } : p));
-
-  const handleSync = useCallback(async () => {
-    setSyncMsg("שומר...");
-    const ok = await storage.save(players);
-    if (ok) {
-      setLastSaved(new Date().toISOString());
-      setSyncMsg("סונכרן");
-    } else {
-      setSyncMsg("שגיאה!");
-    }
-    setTimeout(() => setSyncMsg(""), 2500);
-  }, [players]);
 
   const handleAdd = form => { setPlayers(ps => [...ps, { ...form, id: Date.now(), present: true }]); setModal(null); };
   const handleEdit = form => { setPlayers(ps => ps.map(p => p.id === form.id ? form : p)); setModal(null); };
@@ -330,10 +310,7 @@ useEffect(() => {
               <div className="text-xs text-white/40 leading-none mt-0.5">{presentCount} נוכחים מתוך {players.length}</div>
             </div>
           </div>
-          <button onClick={handleSync} className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/6 border border-white/10 text-xs font-semibold hover:bg-white/10 transition-all active:scale-95">
-            <IcoSave />
-            {syncMsg || "סנכרן"}
-          </button>
+
         </div>
         <div className="max-w-2xl mx-auto px-4 pb-3 flex gap-1.5">
           {[["roster","רשימת שחקנים"],["teams","קבוצות"]].map(([key, lbl]) => (

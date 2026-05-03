@@ -1,5 +1,6 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { createClient } from "@supabase/supabase-js";
+
 
 const supabase = createClient(
   "https://ptmoszpwbzyivcaliliv.supabase.co",
@@ -255,6 +256,16 @@ export default function App() {
   const [modal, setModal] = useState(null);
   const [syncMsg, setSyncMsg] = useState("");
   const [lastSaved, setLastSaved] = useState(storage.lastSaved());
+const isFirstLoad = useRef(true);
+
+useEffect(() => {
+  if (isFirstLoad.current) { isFirstLoad.current = false; return; }
+  const timer = setTimeout(async () => {
+    const ok = await storage.save(players);
+    if (ok) setLastSaved(new Date().toISOString());
+  }, 1000);
+  return () => clearTimeout(timer);
+}, [players]);
   const [errorMsg, setErrorMsg] = useState("");
 
   const presentCount = players.filter(p => p.present).length;

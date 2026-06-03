@@ -407,7 +407,7 @@ export default function App() {
               <IcoPlus /> הוסף שחקן
             </button>
 
-            {players.map(p => (
+            {[...players].sort((a, b) => a.position - b.position).map(p => (
               <div key={p.id} onClick={() => togglePresent(p.id)}
                 className={"rounded-xl border transition-all cursor-pointer select-none " + (p.present ? "border-white/10" : "border-white/5 opacity-45")}
                 style={{ background: p.present ? "rgba(255,255,255,0.038)" : "rgba(255,255,255,0.012)" }}>

@@ -391,6 +391,17 @@ export default function App() {
               </div>
             )}
 
+            <div className="flex gap-2">
+              <button onClick={() => setPlayers(ps => ps.map(p => ({ ...p, present: true })))}
+                className="flex-1 py-2 rounded-xl border border-green-500/30 text-green-400 text-xs font-bold hover:bg-green-500/10 transition-all active:scale-95">
+                סמן הכל נוכח
+              </button>
+              <button onClick={() => setPlayers(ps => ps.map(p => ({ ...p, present: false })))}
+                className="flex-1 py-2 rounded-xl border border-white/15 text-white/40 text-xs font-bold hover:bg-white/5 transition-all active:scale-95">
+                נקה הכל
+              </button>
+            </div>
+
             <button onClick={() => setModal("add")}
               className="w-full py-2.5 rounded-xl border border-dashed border-white/20 text-white/40 text-sm hover:border-orange-500/50 hover:text-orange-400 transition-all flex items-center justify-center gap-2">
               <IcoPlus /> הוסף שחקן

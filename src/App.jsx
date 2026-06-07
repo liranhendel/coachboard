@@ -75,7 +75,7 @@ const IcoClose = () => (
   </svg>
 );
 
-const CRITERIA_KEY = { "ציון כללי": "rating", "קליעה": "shooting", "מהירות": "speed" };
+const CRITERIA_KEY = { "ציון משוקלל": "rating", "קליעה": "shooting", "מהירות": "speed" };
 
 function snakeDraft(sorted, numTeams, startDir) {
   const teams = Array.from({ length: numTeams }, (_, i) => ({ id: i + 1, players: [] }));
@@ -90,18 +90,18 @@ function snakeDraft(sorted, numTeams, startDir) {
 }
 
 function calcTeam(t, key, teamSize) {
-  const top = [...t.players].sort((a, b) => b.rating - a.rating).slice(0, teamSize);
+  const top = [...t.players].sort((a, b) => weightedScore(b) - weightedScore(a)).slice(0, teamSize);
   return {
     ...t,
     avg: t.players.length ? (t.players.reduce((s, p) => s + p[key], 0) / t.players.length).toFixed(1) : 0,
-    ratingTotal: top.reduce((s, p) => s + p[key], 0),
+    ratingTotal: key === "rating" ? +top.reduce((s, p) => s + weightedScore(p), 0).toFixed(1) : top.reduce((s, p) => s + p[key], 0),
     posTotal: top.reduce((s, p) => s + p.position, 0),
   };
 }
 
 function generateTwoOptions(present, teamSize, criteria) {
   const key = CRITERIA_KEY[criteria];
-  const sorted = [...present].sort((a, b) => b[key] - a[key]);
+  const sorted = [...present].sort((a, b) => (key === "rating" ? weightedScore(b) - weightedScore(a) : b[key] - a[key]));
   const numTeams = Math.floor(sorted.length / teamSize);
   if (numTeams < 2) return null;
   const opt1 = snakeDraft(sorted, numTeams, 0).map(t => calcTeam(t, key, teamSize));
@@ -135,7 +135,7 @@ function generateFullSquadOptions(present) {
   }
   if (candidates.length === 0) return null;
   candidates.sort((a, b) => {
-    const diff = b.reduce((s, p) => s + p.rating, 0) - a.reduce((s, p) => s + p.rating, 0);
+    const diff = b.reduce((s, p) => s + weightedScore(p), 0) - a.reduce((s, p) => s + weightedScore(p), 0);
     if (diff !== 0) return diff;
     return b.reduce((s, p) => s + p.position, 0) - a.reduce((s, p) => s + p.position, 0);
   });
@@ -143,13 +143,17 @@ function generateFullSquadOptions(present) {
   return chosen.map((five, i) => ({
     id: i + 1,
     players: [...five].sort((a, b) => b.position - a.position),
-    ratingTotal: five.reduce((s, p) => s + p.rating, 0),
+    ratingTotal: +five.reduce((s, p) => s + weightedScore(p), 0).toFixed(1),
     posTotal: five.reduce((s, p) => s + p.position, 0),
   }));
 }
 
+function weightedScore(p) {
+  return +(p.shooting * 0.2 + p.speed * 0.2 + p.playmaking * 0.2 + p.rating * 0.4).toFixed(2);
+}
+
 function generateLevels(present, numLevels) {
-  const sorted = [...present].sort((a, b) => b.rating - a.rating);
+  const sorted = [...present].sort((a, b) => weightedScore(b) - weightedScore(a));
   const n = sorted.length;
   if (n < numLevels) return null;
   const baseSize = Math.floor(n / numLevels);
@@ -221,7 +225,7 @@ function PlayerModal({ player, onClose, onSave }) {
             ))}
           </div>
           <div className="space-y-3">
-            {[["קליעה","shooting",10],["מהירות","speed",10],["הובלת כדור","playmaking",10],["ציון כללי","rating",10]].map(([label,key,max]) => (
+            {[["קליעה","shooting",10],["מהירות","speed",10],["הובלת כדור","playmaking",10],["הערכה כללית","rating",10]].map(([label,key,max]) => (
               <div key={key}>
                 <div className="flex justify-between mb-1">
                   <label className="text-xs text-white/40 uppercase tracking-wider">{label}</label>
@@ -472,7 +476,7 @@ export default function App() {
                   </div>
                   <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
                     <div className="text-center">
-                      <div className="text-2xl font-black text-orange-400 leading-none">{p.rating}</div>
+                      <div className="text-2xl font-black text-orange-400 leading-none">{weightedScore(p)}</div>
                       <div className="text-xs text-white/30 uppercase tracking-wider leading-none mt-0.5">ציון</div>
                     </div>
                     <div className="flex flex-col gap-1">
@@ -525,7 +529,7 @@ export default function App() {
                               <span className="text-xs text-white/40">{group.length} שחקנים</span>
                             </div>
                             <span className="text-xs text-white/40">
-                              ציון ממוצע <span className="text-white font-bold">{(group.reduce((s,p)=>s+p.rating,0)/group.length).toFixed(1)}</span>
+                              ציון ממוצע <span className="text-white font-bold">{(group.reduce((s,p)=>s+weightedScore(p),0)/group.length).toFixed(2)}</span>
                             </span>
                           </div>
                           <div className="divide-y divide-white/5">

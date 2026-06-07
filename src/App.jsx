@@ -415,6 +415,20 @@ export default function App() {
                   "🏀" כל הנבחרת
                 </button>
               </div>
+              <div className="flex gap-2 items-center">
+                <div className="flex gap-1">
+                  {[2, 3].map(n => (
+                    <button key={n} onClick={() => setNumLevels(n)}
+                      className={"w-8 h-8 rounded-lg text-xs font-black transition-all " + (numLevels === n ? "bg-red-500 text-white shadow-md" : "bg-white/8 text-white/50 hover:bg-white/12")}>
+                      {n}
+                    </button>
+                  ))}
+                </div>
+                <button onClick={handleGenerateLevels}
+                  className="flex-1 h-9 rounded-lg bg-gradient-to-l from-red-500 to-red-600 hover:from-red-400 hover:to-red-500 text-white text-xs font-black transition-all active:scale-95 shadow-lg shadow-red-500/20 flex items-center justify-center gap-1.5">
+                  חלק לפי רמות
+                </button>
+              </div>
             </div>
 
             {errorMsg && (

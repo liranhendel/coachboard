@@ -148,6 +148,28 @@ function generateFullSquadOptions(present) {
   }));
 }
 
+function generateLevels(present, numLevels) {
+  const sorted = [...present].sort((a, b) => b.rating - a.rating);
+  const n = sorted.length;
+  if (n < numLevels) return null;
+  const baseSize = Math.floor(n / numLevels);
+  const remainder = n % numLevels;
+  const groups = [];
+  let idx = 0;
+  for (let i = 0; i < numLevels; i++) {
+    const size = baseSize + (i < remainder ? 1 : 0);
+    groups.push(sorted.slice(idx, idx + size));
+    idx += size;
+  }
+  return groups;
+}
+
+const LEVEL_COLORS = [
+  { grad: "from-red-500/25 to-red-700/10",    border: "border-red-500/40",    dot: "bg-red-500",    name: "חזקים"    },
+  { grad: "from-amber-500/25 to-amber-700/10",border: "border-amber-500/40",  dot: "bg-amber-400",  name: "בינוניים" },
+  { grad: "from-blue-500/25 to-blue-700/10",  border: "border-blue-500/40",   dot: "bg-blue-400",   name: "חלשים"    },
+];
+
 const TEAM_COLORS = [
   { grad: "from-blue-600/30 to-blue-800/15",     border: "border-blue-500/50",     dot: "bg-blue-500",   name: "כחולים" },
   { grad: "from-slate-300/15 to-slate-100/5",    border: "border-slate-300/40",    dot: "bg-white",      name: "לבנים"  },
@@ -252,6 +274,7 @@ export default function App() {
   const [criteria, setCriteria] = useState("ציון כללי");
   const [options, setOptions] = useState(null);
   const [optionMode, setOptionMode] = useState("");
+  const [numLevels, setNumLevels] = useState(2);
   const [modal, setModal] = useState(null);
   const [lastSaved, setLastSaved] = useState(storage.lastSaved());
   const [syncMsg, setSyncMsg] = useState("");
@@ -287,6 +310,16 @@ export default function App() {
   const handleEdit = form => { setPlayers(ps => ps.map(p => p.id === form.id ? form : p)); setModal(null); };
   const handleDelete = id => { if (confirm("למחוק שחקן זה?")) setPlayers(ps => ps.filter(p => p.id !== id)); };
 
+
+  const handleGenerateLevels = () => {
+    const present = players.filter(p => p.present);
+    const result = generateLevels(present, numLevels);
+    if (!result) { setErrorMsg("אין מספיק שחקנים נוכחים."); return; }
+    setErrorMsg("");
+    setOptions(result);
+    setOptionMode("levels");
+    setTab("teams");
+  };
 
   const handleGenerate = () => {
     const present = players.filter(p => p.present);
@@ -457,13 +490,43 @@ export default function App() {
                   <div className="text-xs text-white/40">
                     {optionMode === "full"
                       ? "כל הנבחרת - חמישיות (ניקוד 12-14)"
+                      : optionMode === "levels"
+                      ? (numLevels + " רמות לפי ציון כללי")
                       : (teamSize + " שחקנים - " + criteria)
                     }
                   </div>
                   <button onClick={() => setOptions(null)} className="text-xs text-white/25 hover:text-white/50 transition-colors">נקה</button>
                 </div>
 
-                {optionMode === "full" ? (
+                {optionMode === "levels" ? (
+                  <div className="space-y-3">
+                    {options.map((group, i) => {
+                      const col = LEVEL_COLORS[i % LEVEL_COLORS.length];
+                      return (
+                        <div key={i} className={"rounded-xl border bg-gradient-to-b " + col.grad + " " + col.border + " overflow-hidden"}>
+                          <div className="px-4 py-2.5 border-b border-white/8 flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <span className={"w-2.5 h-2.5 rounded-full " + col.dot} />
+                              <span className="font-black text-sm">{col.name}</span>
+                              <span className="text-xs text-white/40">{group.length} שחקנים</span>
+                            </div>
+                            <span className="text-xs text-white/40">
+                              ציון ממוצע <span className="text-white font-bold">{(group.reduce((s,p)=>s+p.rating,0)/group.length).toFixed(1)}</span>
+                            </span>
+                          </div>
+                          <div className="divide-y divide-white/5">
+                            {group.map(p => (
+                              <div key={p.id} className="flex items-center justify-between px-4 py-2">
+                                <span className="text-sm font-semibold">{p.firstName} {p.lastName}</span>
+                                <span className="text-lg font-black text-orange-400">{p.rating}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : optionMode === "full" ? (
                   <div className="grid grid-cols-2 gap-3">
                     {options.map((five, i) => {
                       const col = SQUAD_COLORS[i % SQUAD_COLORS.length];

@@ -275,7 +275,7 @@ export default function App() {
   }, []);
   const [tab, setTab] = useState("roster");
   const [teamSize, setTeamSize] = useState(5);
-  const [criteria, setCriteria] = useState("ציון כללי");
+  const [criteria, setCriteria] = useState("ציון משוקלל");
   const [options, setOptions] = useState(null);
   const [optionMode, setOptionMode] = useState("");
   const [numLevels, setNumLevels] = useState(2);
@@ -441,6 +441,11 @@ export default function App() {
                 <button onClick={() => setErrorMsg("")} className="text-red-400/60 hover:text-red-300 text-xs mr-2">x</button>
               </div>
             )}
+
+            <div className="flex items-center justify-between px-1">
+              <span className="text-xs text-white/40">סה"כ שחקנים: <span className="text-white font-bold">{players.length}</span></span>
+              <span className="text-xs text-white/40">נוכחים: <span className="text-green-400 font-bold">{presentCount}</span></span>
+            </div>
 
             <div className="flex gap-2">
               <button onClick={() => setPlayers(ps => ps.map(p => ({ ...p, present: true })))}

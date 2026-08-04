@@ -1,0 +1,12 @@
+name: Keep Supabase Alive
+on:
+  schedule:
+    - cron: '0 0 */3 * *'
+  workflow_dispatch:
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase
+        run: |
+          curl "https://ptmoszpwbzyivcaliliv.supabase.co/rest/v1/players?apikey=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB0bW9zenB3Ynp5aXZjYWxpbGl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NTA0ODIsImV4cCI6MjA5MzAyNjQ4Mn0._gMcVJFM6Qq63W71IzuflEn5u5BkDxi_9gUj1Jv79Lw"
